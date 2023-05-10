@@ -15,6 +15,9 @@ class SimulatorViewModel: ObservableObject {
     @Published var sickPeople: Int = 0
     var timer: Timer.TimerPublisher
     
+    var sickStat: [Int] = [0]
+
+    
     init(groupSize: Int, infectionFactor: Int, time: Int) {
         data = InputData(groupSize: groupSize, infectionFactor: infectionFactor, time: time)
       
@@ -22,8 +25,7 @@ class SimulatorViewModel: ObservableObject {
         self.timer = Timer.publish(every: TimeInterval(time), on: .main, in: .common)
     }
     
-    
-    
+   
     func setSettings(group: String, infFactor: String, t: String) {
         data.groupSize = Int(group) ?? 7
         data.infectionFactor = Int(infFactor) ?? 3
@@ -31,6 +33,8 @@ class SimulatorViewModel: ObservableObject {
         peopleState = Array(repeating: false, count: data.groupSize)
         sickPeople = 0
         timer = Timer.publish(every: TimeInterval(data.time), on: .main, in: .common)
+        sickStat = [0]
+        
     }
     
     func infectPeopleAround(sickP: Int) {
@@ -40,13 +44,10 @@ class SimulatorViewModel: ObservableObject {
             let right = sickP+data.infectionFactor < data.groupSize ? sickP+data.infectionFactor : data.groupSize - 1
             let person = Int.random(in: left...right)
             if !peopleState[abs(person)] {
-//                DispatchQueue.main.async { [self] in
                     withAnimation {
                         peopleState[abs(person)] = true
                         sickPeople += 1
                     }
-                    
-//                }
             }
         }
     }
@@ -55,10 +56,7 @@ class SimulatorViewModel: ObservableObject {
         if !peopleState[index] {
                 peopleState[index] = true
                 sickPeople += 1
-//            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 0.5) { [self] in
                 infectPeopleAround(sickP: index)
-//            }
-               
         }
     }
     
@@ -72,5 +70,16 @@ class SimulatorViewModel: ObservableObject {
         for i in infectedIndexes {
             infectPeopleAround(sickP: i)
         }
+        sickStat.append(sickPeople)
+    }
+    
+    func getTimeStat() -> [Int] {
+        var arr = [Int]()
+        var t = 0
+        for i in 0..<sickStat.count {
+            arr.append(t)
+            t += data.time
+        }
+        return arr
     }
 }

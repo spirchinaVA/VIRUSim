@@ -11,6 +11,7 @@ struct SimulatorView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var simViewModel: SimulatorViewModel
     @State var value:CGFloat = 0
+    @State var showStat = false
     
     let columns = [
         GridItem(.flexible()),
@@ -33,7 +34,7 @@ struct SimulatorView: View {
         
         ScrollView {
             HStack {
-               
+                
                 Spacer()
                 Image(systemName: "xmark")
                     .font(.system(size: 20, weight: .bold))
@@ -71,12 +72,10 @@ struct SimulatorView: View {
                             .background(
                                 Circle()
                                     .fill(
-                                        //                                                            withAnimation(.easeInOut(duration: 0.5)){
-                                        .angularGradient(colors: simViewModel.peopleState[i] ? [.blue, .red]:                           [.blue, .green],
+                                        .angularGradient(colors: simViewModel.peopleState[i] ? [.blue, .red]: [.blue, .green],
                                                          center: .center,
                                                          startAngle: .degrees(0),
                                                          endAngle: .degrees(360))
-                                        //                                                            }
                                         
                                     )
                                     .blur(radius: 15)
@@ -113,26 +112,20 @@ struct SimulatorView: View {
             }
             .onReceive(simViewModel.timer) { t in
                 if simViewModel.sickPeople >= simViewModel.data.groupSize {
-                    
                     simViewModel.timer.connect().cancel()
-                    print("bye")
+                    showStat = true
                 } else {
-                    print("hey")
+                    
                     simViewModel.spreadInfection()
                 }
+                print(t.timeIntervalSince1970)
             }
+            .fullScreenCover(isPresented: $showStat, content: {
+                StatisticsView(timeArray: simViewModel.getTimeStat(), infCountArray: simViewModel.sickStat)
+                    .presentationBackground(.ultraThinMaterial)
+            })
         
-    }
-    
-    var person: some View {
-        Circle().overlay{
-            
-        }
     }
 }
 
-struct SimulatorView_Previews: PreviewProvider {
-    static var previews: some View {
-        SimulatorView(simViewModel: SimulatorViewModel(groupSize: 7, infectionFactor: 3, time: 1))
-    }
-}
+
